@@ -24,11 +24,58 @@ import React, { useState } from "react";
 
 export default function FloatingWidget() {
 
+
+      // State to keep track of the input value
+      const [inputValue, setInputValue] = useState('');
+
+      // Function to handle input changes
+      const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setInputValue(event.target.value);
+      };
+
+  const sendRequest = async () => {
+
+
+    // Create a FormData object
+    const formData = new FormData();
+    formData.append('activities', 'eLake, BetaSeeker');
+    formData.append('defaultStartingTime', '09:00');
+    formData.append('defaultEndingTime', '18:00');
+    formData.append('breakDefaultStartTime', '12:00');
+    formData.append('breakDefaultEndTime', '13:00');
+    formData.append('text', inputValue);
+  
+    try {
+      // Send a POST request with the form data
+      const response = await fetch('http://localhost:8080/summarize', {
+        method: 'POST',
+        body: formData, // the FormData object will set the Content-Type to multipart/form-data
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      // Handle the response from the server
+      const data = await response.json();
+      console.log(data);
+      // Do something with the response data
+  
+    } catch (error) {
+      console.error('There was an error!', error);
+    }
+  };
+
+  const handleButtonClick = async () => {
+    await sendRequest(); // Wait for the POST request to complete
+    setToDefault();      // Then do the next thing
+  };
+
   const [footerState, setFooterState] = useState("default");
 
-  const handleMicClick = () => {
-    setFooterState("mic");
-  };
+  // const handleMicClick = () => {
+  //   setFooterState("mic");
+  // };
 
   const handleSendClick = () => {
     // Perform logic based on the return, and update the footer state accordingly
@@ -39,7 +86,69 @@ export default function FloatingWidget() {
     // Perform logic based on the return, and update the footer state accordingly
     setFooterState("default");
   };
+  
 
+
+
+
+const [isRecording, setIsRecording] = useState(false);
+const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+
+const handleMicClick = () => {
+  if (isRecording && mediaRecorder) {
+    // Stop recording
+    mediaRecorder.stop();
+    setIsRecording(false);
+  } else {
+    // Start recording
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        const recorder = new MediaRecorder(stream);
+        setMediaRecorder(recorder);
+
+        recorder.ondataavailable = (e) => {
+          setAudioBlob(e.data);
+        };
+
+        recorder.start();
+        setIsRecording(true);
+      })
+      .catch(error => {
+        console.error('Error accessing the microphone', error);
+      });
+  }
+}
+
+  const handleSendAudio = async () => {
+    if (audioBlob) {
+      const formData = new FormData();
+      formData.append('activities', 'eLake, BetaSeeker');
+      formData.append('defaultStartingTime', '09:00');
+      formData.append('defaultEndingTime', '18:00');
+      formData.append('breakDefaultStartTime', '12:00');
+      formData.append('breakDefaultEndTime', '13:00');
+      formData.append('audio', audioBlob, 'recording.mp3');
+  
+      try {
+        const response = await fetch(`http://localhost:8080/audioSummary`, {
+          method: 'POST',
+          body: formData,
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        console.log(data);
+        // Handle the response here
+  
+      } catch (error) {
+        console.error('There was an error!', error);
+      }
+    }
+  }
 
   return (
     <>
@@ -73,22 +182,31 @@ export default function FloatingWidget() {
             {footerState === "default" && (
               <div className="px-4 h-24 flex items-center space-x-2">
                 {/* Render default footer elements */}
-                <Button
-                  className="shrink-0 rounded-full h-[44px] w-[44px] p-0"
-                  onClick={handleMicClick}
-                >
-                  <img src={micIcon} alt="Mic icon" />
-                </Button>
+              <Button
+                className="shrink-0 rounded-full h-[44px] w-[44px] p-0"
+                onClick={handleMicClick}
+              >
+              <img src={micIcon} alt="Mic icon" />
+              </Button>
+              <Button
+                className="shrink-0 rounded-full h-[44px] w-[44px] p-0"
+                onClick={handleSendAudio}
+                disabled={!audioBlob}
+            >
+              Send Audio
+            </Button>
                 <Input
                   className="h-[44px] rounded-full outline-0"
                   type="text"
                   placeholder="Say or type something..."
+                  onChange={handleInputChange} // Set up the onChange handler
+                  value={inputValue} // Control the input with the inputValue state
                 />
                 <Button
                   className="shrink-0 rounded-full h-[44px] w-[44px] p-0"
-                  onClick={handleSendClick}
+                  onClick={handleSendClick} // Set up the onClick handler
                 >
-                  <PaperPlaneIcon className="h-4 w-4" />
+                  Send
                 </Button>
               </div>
             )}
@@ -110,7 +228,7 @@ export default function FloatingWidget() {
               <div className="px-4 h-24 flex items-center justify-center">
                 <Button
                   className="w-full h-[44px]"
-                  onClick={setToDefault}
+                  onClick={handleButtonClick}
                 >
                   Submit
                 </Button>
@@ -121,5 +239,5 @@ export default function FloatingWidget() {
         </div>
       </Popover>
     </>
-  )
+  ) 
 }
