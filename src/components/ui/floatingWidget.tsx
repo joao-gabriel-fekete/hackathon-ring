@@ -89,27 +89,27 @@ const data: Data = {
     processing: "prepared for the user testing in the afternoon.",
   },
   activities: [
-    // {
-    //   activity: "eLake",
-    //   date: "2023/26/11",
-    //   description: "Worked on eLake project",
-    //   endingTime: "12:00",
-    //   startingTime: "09:00",
-    // },
-    // {
-    //   activity: "BetaSeeker",
-    //   date: "2023/26/11",
-    //   description: "Worked on eLake project",
-    //   endingTime: "16:00",
-    //   startingTime: "13:00",
-    // },
-    // {
-    //   activity: "",
-    //   date: "2023/26/11",
-    //   description: "Worked on eLake project",
-    //   endingTime: "16:00",
-    //   startingTime: "13:00",
-    // },
+    {
+      activity: "eLake",
+      date: "2023/26/11",
+      description: "Worked on eLake project",
+      endingTime: "12:00",
+      startingTime: "09:00",
+    },
+    {
+      activity: "BetaSeeker",
+      date: "2023/26/11",
+      description: "Worked on eLake project",
+      endingTime: "16:00",
+      startingTime: "13:00",
+    },
+    {
+      activity: "",
+      date: "2023/26/11",
+      description: "Worked on eLake project",
+      endingTime: "16:00",
+      startingTime: "13:00",
+    },
   ],
 };
 
@@ -372,7 +372,7 @@ export default function FloatingWidget() {
                   <img src={micIcon} alt="Mic icon" />
                 </Button>
                 <Button
-                  className="shrink-0 rounded-full h-[44px] w-[44px] p-0"
+                  className="text-xs whitespace-normal shrink-0 rounded-full h-[44px] w-[44px] p-0"
                   onClick={handleSendAudio}
                   disabled={!audioBlob}
                 >
